@@ -3,9 +3,9 @@ A practice mobile‑store app built with a React UI and a FastAPI backend using 
 
 🚀 Tech Stack
 
-Frontend: React
-Backend (v1): FastAPI
-Backend (v2 – in progress): Node.js
+Frontend: React\
+Backend (v1): FastAPI\
+Backend (v2 – in progress): Node.js\
 Database: SQL
 
 
