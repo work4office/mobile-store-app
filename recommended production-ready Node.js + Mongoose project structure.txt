@@ -1,0 +1,50 @@
+bookTourAPI/
+│
+├── server.js                  # Entry point – starts HTTP server
+├── app.js                     # Express app setup (middleware, routes, error handling)
+├── config.env                 # Environment variables
+├── package.json
+├── .gitignore
+│
+├── config/
+│   └── db.js                  # Mongoose connection logic
+│
+├── models/
+│   ├── userModel.js           # User schema & model
+│   ├── tourModel.js           # Tour schema & model
+│   └── bookingModel.js        # Booking schema & model
+│
+├── controllers/
+│   ├── authController.js      # Login, signup, protect, restrict
+│   ├── userController.js      # CRUD for users
+│   ├── tourController.js      # CRUD for tours
+│   ├── bookingController.js   # CRUD for bookings
+│   └── errorController.js     # Global error handler
+│
+├── routes/
+│   ├── userRoutes.js
+│   ├── tourRoutes.js
+│   └── bookingRoutes.js
+│
+├── middlewares/
+│   ├── auth.js                # JWT verification, role guards
+│   ├── validate.js            # Request validation middleware
+│   └── asyncHandler.js        # Catch async errors wrapper
+│
+├── utils/
+│   ├── appError.js            # Custom AppError class
+│   ├── apiFeatures.js         # Filter, sort, paginate, field-limit
+│   ├── email.js               # Email sending utility
+│   └── logger.js              # Winston/Morgan logging setup
+│
+├── validators/
+│   └── tourValidator.js       # Joi / express-validator schemas
+│
+├── seeds/
+│   └── seed.js                # DB seeding scripts
+│
+└── tests/
+    ├── unit/
+    │   └── tour.test.js
+    └── integration/
+        └── tourRoutes.test.js
