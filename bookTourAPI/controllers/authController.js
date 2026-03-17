@@ -1,60 +1,56 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/userModel');
-const asyncHandler = require('../middlewares/asyncHandler');
-const AppError = require('../utils/appError');
+import asyncHandler from "../middlewares/asyncHandler.js";
+import * as authService from "../services/authService.js";
 
-/**
- * Generate a signed JWT for the given user id.
- */
-const signToken = (id) =>
-  jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRES_IN || '90d',
-  });
+// ─── Sign Up ──────────────────────────────────────────────
+export const signup = asyncHandler(async (req, res, next) => {
+  const { user, token } = await authService.signup(req.body);
 
-/**
- * Create token and send it in the response.
- */
-const createSendToken = (user, statusCode, res) => {
-  const token = signToken(user._id);
-
-  // Remove password from output
-  user.password = undefined;
-
-  res.status(statusCode).json({
-    status: 'success',
+  res.status(201).json({
+    status: "success",
     token,
     data: { user },
   });
-};
-
-// ─── Sign Up ──────────────────────────────────────────────
-exports.signup = asyncHandler(async (req, res, next) => {
-  const newUser = await User.create({
-    name: req.body.name,
-    email: req.body.email,
-    password: req.body.password,
-    role: req.body.role,
-  });
-
-  createSendToken(newUser, 201, res);
 });
 
 // ─── Log In ───────────────────────────────────────────────
-exports.login = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+export const login = asyncHandler(async (req, res, next) => {
+  const { user, token } = await authService.login(
+    req.body.email,
+    req.body.password,
+  );
 
-  // 1) Check email & password exist
-  if (!email || !password) {
-    return next(new AppError('Please provide email and password', 400));
-  }
+  res.status(200).json({
+    status: "success",
+    token,
+    data: { user },
+  });
+});
 
-  // 2) Check user exists & password is correct
-  const user = await User.findOne({ email }).select('+password');
+export const forgotPassword = asyncHandler(async (req, res, next) => {
+  await authService.forgotPassword(req);
 
-  if (!user || !(await user.isCorrectPassword(password))) {
-    return next(new AppError('Incorrect email or password', 401));
-  }
+  res.status(200).json({
+    status: "success",
+    message: "Token sent to email!",
+  });
+});
 
-  // 3) Send token
-  createSendToken(user, 200, res);
+export const resetPassword = asyncHandler(async (req, res, next) => {
+  const { user, token } = await authService.resetPassword(req, res);
+
+  res.status(200).json({
+    status: "success",
+    token,
+    data: { user },
+  });
+});
+
+export const updatePassword = asyncHandler(async (req, res, next) => {
+  const { user, token } = await authService.updatePassword(req, res);
+
+  res.status(200).json({
+    status: "success",
+    token,
+    data: { user },
+  });
 });

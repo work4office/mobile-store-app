@@ -1,17 +1,9 @@
-const User = require('../models/userModel');
-const asyncHandler = require('../middlewares/asyncHandler');
-const AppError = require('../utils/appError');
-const APIFeatures = require('../utils/queryBuilder');
+import asyncHandler from '../middlewares/asyncHandler.js';
+import * as userService from '../services/userService.js';
 
-// ─── Get All Users ────────────────────────────────────────
-exports.getAllUsers = asyncHandler(async (req, res, next) => {
-  const features = new APIFeatures(User.find(), req.query)
-    .filter()
-    .sort()
-    .limitFields()
-    .paginate();
-
-  const users = await features.query;
+// ─── Get All Users ──────────────────────────────────────
+export const getAllUsers = asyncHandler(async (req, res, next) => {
+  const users = await userService.findAll(req.query);
 
   res.status(200).json({
     status: 'success',
@@ -21,12 +13,8 @@ exports.getAllUsers = asyncHandler(async (req, res, next) => {
 });
 
 // ─── Get User By ID ──────────────────────────────────────
-exports.getUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.params.id);
-
-  if (!user) {
-    return next(new AppError('No user found with that ID', 404));
-  }
+export const getUser = asyncHandler(async (req, res, next) => {
+  const user = await userService.findById(req.params.id);
 
   res.status(200).json({
     status: 'success',
@@ -35,15 +23,8 @@ exports.getUser = asyncHandler(async (req, res, next) => {
 });
 
 // ─── Update User (admin) ────────────────────────────────
-exports.updateUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!user) {
-    return next(new AppError('No user found with that ID', 404));
-  }
+export const updateUser = asyncHandler(async (req, res, next) => {
+  const user = await userService.update(req.params.id, req.body);
 
   res.status(200).json({
     status: 'success',
@@ -52,12 +33,8 @@ exports.updateUser = asyncHandler(async (req, res, next) => {
 });
 
 // ─── Delete User ─────────────────────────────────────────
-exports.deleteUser = asyncHandler(async (req, res, next) => {
-  const user = await User.findByIdAndDelete(req.params.id);
-
-  if (!user) {
-    return next(new AppError('No user found with that ID', 404));
-  }
+export const deleteUser = asyncHandler(async (req, res, next) => {
+  await userService.deleteUser(req.params.id);
 
   res.status(204).json({
     status: 'success',
@@ -66,8 +43,8 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
 });
 
 // ─── Get Currently Logged-In User Profile ────────────────
-exports.getMe = asyncHandler(async (req, res, next) => {
-  const user = await User.findById(req.user.id);
+export const getMe = asyncHandler(async (req, res, next) => {
+  const user = await userService.findById(req.user.id);
 
   res.status(200).json({
     status: 'success',
@@ -76,28 +53,8 @@ exports.getMe = asyncHandler(async (req, res, next) => {
 });
 
 // ─── Update My Profile (logged-in user) ──────────────────
-exports.updateMe = asyncHandler(async (req, res, next) => {
-  // Prevent password update through this route
-  if (req.body.password) {
-    return next(
-      new AppError(
-        'This route is not for password updates. Please use /update-password.',
-        400
-      )
-    );
-  }
-
-  // Filter allowed fields
-  const filteredBody = {};
-  const allowedFields = ['name', 'email'];
-  Object.keys(req.body).forEach((key) => {
-    if (allowedFields.includes(key)) filteredBody[key] = req.body[key];
-  });
-
-  const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
-    new: true,
-    runValidators: true,
-  });
+export const updateMe = asyncHandler(async (req, res, next) => {
+  const updatedUser = await userService.updateMe(req.user.id, req.body);
 
   res.status(200).json({
     status: 'success',
@@ -106,8 +63,8 @@ exports.updateMe = asyncHandler(async (req, res, next) => {
 });
 
 // ─── Deactivate My Account ──────────────────────────────
-exports.deleteMe = asyncHandler(async (req, res, next) => {
-  await User.findByIdAndUpdate(req.user.id, { active: false });
+export const deleteMe = asyncHandler(async (req, res, next) => {
+  await userService.deactivate(req.user.id);
 
   res.status(204).json({
     status: 'success',

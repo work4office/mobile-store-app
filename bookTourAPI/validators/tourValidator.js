@@ -1,5 +1,5 @@
-const Joi = require('joi');
-const AppError = require('../utils/appError');
+import Joi from 'joi';
+import AppError from '../utils/appError.js';
 
 /**
  * Joi schema for creating a tour.
@@ -47,7 +47,5 @@ const validateBody = (schema) => (req, res, next) => {
   next();
 };
 
-module.exports = {
-  validateCreateTour: validateBody(createTourSchema),
-  validateUpdateTour: validateBody(updateTourSchema),
-};
+export const validateCreateTour = validateBody(createTourSchema);
+export const validateUpdateTour = validateBody(updateTourSchema);

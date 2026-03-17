@@ -59,4 +59,4 @@ class QueryBuilder {
   }
 }
 
-module.exports = QueryBuilder;
+export default QueryBuilder;

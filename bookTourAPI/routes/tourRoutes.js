@@ -1,25 +1,40 @@
-const express = require('express');
-const tourController = require('../controllers/tourController');
-const bookingRouter = require('./bookingRoutes');
-const { protect, restrictTo } = require('../middlewares/auth');
-const { validateCreateTour, validateUpdateTour } = require('../validators/tourValidator');
+import express from 'express';
+import * as tourController from '../controllers/tourController.js';
+import bookingRouter from './bookingRoutes.js';
+import { protect, restrictTo } from '../middlewares/auth.js';
+import {
+  validateCreateTour,
+  validateUpdateTour,
+} from '../validators/tourValidator.js';
 
 const router = express.Router();
 
 // ─── Nested route: /tours/:tourId/bookings ───────────────
-// router.use('/:tourId/bookings', bookingRouter);
+router.use('/:tourId/bookings', bookingRouter);
 
 // ─── Public routes ───────────────────────────────────────
 router
-  .route('/')
-  .get(tourController.getAllTours)
-  .post(validateCreateTour, tourController.createTour);
-    //protect, restrictTo('admin'), 
+  .route("/")
+  .get(protect, tourController.getAllTours)
+  .post(
+    protect,
+    restrictTo("admin"),
+    validateCreateTour,
+    tourController.createTour,
+  );
 
-// router
-//   .route('/:id')
-//   .get(tourController.getTour)
-//   .patch(protect, restrictTo('admin'), validateUpdateTour, tourController.updateTour)
-//   .delete(protect, restrictTo('admin'), tourController.deleteTour);
+router.route("/tour-statistics").get(tourController.getTourStatistics);
+router.route("/tours-per-months/:year").get(tourController.getToursPerMonths);
 
-module.exports = router;
+router
+  .route("/:id")
+  .get(tourController.getTour)
+  .patch(
+    protect,
+    restrictTo("admin"),
+    validateUpdateTour,
+    tourController.updateTour,
+  )
+  .delete(protect, restrictTo("admin"), tourController.deleteTour);
+
+export default router;

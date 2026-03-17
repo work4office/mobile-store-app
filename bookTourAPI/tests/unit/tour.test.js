@@ -1,4 +1,4 @@
-const Tour = require('../../models/tourModel');
+import Tour from '../../models/tourModel.js';
 
 describe('Tour Model', () => {
   it('should require a name', () => {

@@ -1,4 +1,4 @@
-const morgan = require('morgan');
+import morgan from 'morgan';
 
 /**
  * Returns a Morgan HTTP request logger middleware configured
@@ -11,4 +11,4 @@ const requestLogger = () => {
   return morgan('combined');
 };
 
-module.exports = requestLogger;
+export default requestLogger;

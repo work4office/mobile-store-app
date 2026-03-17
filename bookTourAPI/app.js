@@ -1,12 +1,12 @@
-const express = require('express');
-const requestLogger = require('./utils/logger');
-const AppError = require('./utils/appError');
-const globalErrorHandler = require('./controllers/errorController');
+import express from 'express';
+import requestLogger from './utils/logger.js';
+import AppError from './utils/appError.js';
+import globalErrorHandler from './controllers/errorController.js';
 
 // Route imports
-const tourRoutes = require('./routes/tourRoutes');
-const userRoutes = require('./routes/userRoutes');
-const bookingRoutes = require('./routes/bookingRoutes');
+import tourRoutes from './routes/tourRoutes.js';
+import userRoutes from './routes/userRoutes.js';
+import bookingRoutes from './routes/bookingRoutes.js';
 
 const app = express();
 
@@ -23,8 +23,8 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // ─── API Routes ──────────────────────────────────────────
 app.use('/api/v1/tours', tourRoutes);
-// app.use('/api/v1/users', userRoutes);
-// app.use('/api/v1/bookings', bookingRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
 
 // ─── Handle Undefined Routes ─────────────────────────────
 app.all('{*path}', (req, res, next) => {
@@ -34,4 +34,4 @@ app.all('{*path}', (req, res, next) => {
 // ─── Global Error Handler ────────────────────────────────
 app.use(globalErrorHandler);
 
-module.exports = app;
+export default app;
