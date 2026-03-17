@@ -1,10 +1,17 @@
-const dotenv = require('dotenv');
+import dotenv from 'dotenv';
 
 // Load env vars BEFORE anything else
 dotenv.config({ path: './config.env' });
 
-const app = require('./app');
-const connectDB = require('./config/db');
+// ─── Handle Uncaught Exceptions ──────────────────────────
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION 💥 Shutting down...');
+  console.error(err.name, err.message);
+  process.exit(1);
+});
+
+import app from './app.js';
+import connectDB from './config/db.js';
 
 // ─── Connect to Database ────────────────────────────────
 connectDB();
@@ -22,11 +29,4 @@ process.on('unhandledRejection', (err) => {
   server.close(() => {
     process.exit(1);
   });
-});
-
-// ─── Handle Uncaught Exceptions ──────────────────────────
-process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION 💥 Shutting down...');
-  console.error(err.name, err.message);
-  process.exit(1);
 });

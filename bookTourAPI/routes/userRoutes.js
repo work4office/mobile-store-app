@@ -1,32 +1,55 @@
-const express = require('express');
-const authController = require('../controllers/authController');
-const userController = require('../controllers/userController');
-const { protect, restrictTo } = require('../middlewares/auth');
+import express from "express";
+import * as authController from "../controllers/authController.js";
+import * as userController from "../controllers/userController.js";
+import { protect, restrictTo } from "../middlewares/auth.js";
+import {
+  validateSignup,
+  validateLogin,
+  validateForgotPassword,
+  validateResetPassword,
+  validateUpdateMe,
+  validateUpdateUser,
+  validateUpdatePassword,
+} from "../validators/userValidator.js";
 
 const router = express.Router();
 
 // ─── Public routes ───────────────────────────────────────
-router.post('/signup', authController.signup);
-router.post('/login', authController.login);
+router.post("/signup", validateSignup, authController.signup);
+router.post("/login", validateLogin, authController.login);
+
+router.post(
+  "/forgotPassword",
+  validateForgotPassword,
+  authController.forgotPassword,
+);
+router.patch(
+  "/resetPassword/:token",
+  validateResetPassword,
+  authController.resetPassword,
+);
 
 // ─── Protected routes (must be logged in) ────────────────
 router.use(protect); // all routes below require auth
 
-router.get('/me', userController.getMe);
-router.patch('/update-me', userController.updateMe);
-router.delete('/delete-me', userController.deleteMe);
+router.get("/me", userController.getMe);
+router.patch("/update-me", validateUpdateMe, userController.updateMe);
+router.delete("/delete-me", userController.deleteMe);
+router.patch(
+  "/updatePassword",
+  validateUpdatePassword,
+  authController.updatePassword,
+);
 
 // ─── Admin-only routes ──────────────────────────────────
-router.use(restrictTo('admin'));
+router.use(restrictTo("admin"));
+
+router.route("/").get(userController.getAllUsers);
 
 router
-  .route('/')
-  .get(userController.getAllUsers);
-
-router
-  .route('/:id')
+  .route("/:id")
   .get(userController.getUser)
-  .patch(userController.updateUser)
+  .patch(validateUpdateUser, userController.updateUser)
   .delete(userController.deleteUser);
 
-module.exports = router;
+export default router;

@@ -1,24 +1,27 @@
-const Tour = require("../models/tourModel");
-const AppError = require("../utils/appError");
-const QueryBuilder = require("../utils/queryBuilder");
+import Tour from '../models/tourModel.js';
+import AppError from '../utils/appError.js';
+import QueryBuilder from '../utils/queryBuilder.js';
 
-exports.findAll = async (queryString) => {
+export const findAll = async (queryString) => {
   const features = new QueryBuilder(Tour.find(), queryString)
     .filter()
     .sort()
     .limitFields()
     .paginate();
 
-  return await features.query;
+  const tours = await features.query;
+  if (!tours || tours.length === 0) throw new AppError("No tours found", 404);
+  return tours;
 };
 
-exports.findById = async (id) => {
-  const tour = await Tour.findById(id).populate("bookings");
+export const findById = async (id) => {
+  const tour = await Tour.findById(id);
+  //.populate("bookings");
   if (!tour) throw new AppError("No tour found with that ID", 404);
   return tour;
 };
 
-exports.create = async (body, userId) => {
+export const create = async (body, userId) => {
   const isArray = Array.isArray(body);
   const items = isArray ? body : [body];
 
@@ -27,10 +30,11 @@ exports.create = async (body, userId) => {
   }
 
   const newTours = await Tour.create(items);
+  if (!newTours) throw new AppError("Failed to create tour(s)", 400);
   return { tours: isArray ? newTours : newTours[0], count: newTours.length };
 };
 
-exports.update = async (id, body) => {
+export const update = async (id, body) => {
   const tour = await Tour.findByIdAndUpdate(id, body, {
     new: true,
     runValidators: true,
@@ -39,8 +43,72 @@ exports.update = async (id, body) => {
   return tour;
 };
 
-exports.delete = async (id) => {
+export const deleteTour = async (id) => {
   const tour = await Tour.findByIdAndDelete(id);
   if (!tour) throw new AppError("No tour found with that ID", 404);
   return tour;
+};
+
+export const tourStatistics = async () => {
+  const pipeline = [
+    {
+      $match: { ratingsAverage: { $gte: 4.5 } },
+    },
+    {
+      $group: {
+        _id: { $toUpper: "$difficulty" },
+        numTours: { $sum: 1 },
+        numRatings: { $sum: "$ratingsQuantity" },
+        avgRating: { $avg: "$ratingsAverage" },
+        avgPrice: { $avg: "$price" },
+        minPrice: { $min: "$price" },
+        maxPrice: { $max: "$price" },
+      },
+    },
+    {
+      $sort: { avgPrice: 1 },
+    },
+  ];
+  const aggregation = await Tour.aggregate(pipeline);
+  if (!aggregation || aggregation.length === 0)
+    throw new AppError("No statistics found", 404);
+  return aggregation;
+};
+
+export const toursPerMonths = async (year) => {
+  const pipeline = [
+    {
+      $unwind: "$startDates",
+    },
+    {
+      $match: {
+        startDates: {
+          $gte: new Date(`${year}-01-01`),
+          $lte: new Date(`${year}-12-31`),
+        },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: "$startDates" },
+        numTours: { $sum: 1 },
+        name: { $push: "$name" },
+      },
+    },
+    {
+      $addFields: { month: "$_id" },
+    },
+    {
+      $project: {
+        _id: 0,
+      },
+    },
+    {
+      $sort: { month: 1 },
+    },
+  ];
+  const aggregation = await Tour.aggregate(pipeline);
+  if (!aggregation || aggregation.length === 0)
+    throw new AppError("No tours found", 404);
+  return aggregation;
 };

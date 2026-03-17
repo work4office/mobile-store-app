@@ -1,6 +1,10 @@
-const express = require('express');
-const bookingController = require('../controllers/bookingController');
-const { protect, restrictTo } = require('../middlewares/auth');
+import express from 'express';
+import * as bookingController from '../controllers/bookingController.js';
+import { protect, restrictTo } from '../middlewares/auth.js';
+import {
+  validateCreateBooking,
+  validateUpdateBooking,
+} from '../validators/bookingValidator.js';
 
 const router = express.Router({ mergeParams: true }); // mergeParams for nested routes
 
@@ -9,13 +13,13 @@ router.use(protect);
 
 router
   .route('/')
-  .get(bookingController.getAllBookings)
-  .post(bookingController.createBooking);
+  .get(restrictTo('admin'), bookingController.getAllBookings)
+  .post(validateCreateBooking, bookingController.createBooking);
 
 router
   .route('/:id')
   .get(bookingController.getBooking)
-  .patch(restrictTo('admin'), bookingController.updateBooking)
+  .patch(restrictTo('admin'), validateUpdateBooking, bookingController.updateBooking)
   .delete(restrictTo('admin'), bookingController.deleteBooking);
 
-module.exports = router;
+export default router;
